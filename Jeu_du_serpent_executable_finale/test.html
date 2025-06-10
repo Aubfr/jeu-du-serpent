@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jeu du Serpent</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-image: url('https://images.unsplash.com/photo-1517694712202-14dd9538aa97?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwzNjUyOXwwfDF8c2VhcmNofDJ8fGZvcmVzdHxlbnwwfHx8fDE2NzMzMjA0NzM&ixlib=rb-4.0.3&q=80&w=1080');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            overflow: hidden;
+        }
+
+        #score {
+            position: absolute;
+            top: 10%;
+            left: 10%;
+            color: white;
+            font-size: 24px;
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 10px;
+        }
+
+        canvas {
+            border: 5px solid #fffb00f6;
+            margin-top: 50px;
+            background-color: rgba(0, 0, 0, 0.7);
+        }
+
+        footer {
+            position: absolute;
+            bottom: 5%;
+            text-align: center;
+            color: white;
+            font-size: 20px;
+        }
+
+        footer img {
+            width: 80px;
+            height: 80px;
+            margin-top: 10px;
+            border-radius: 50%;
+        }
+    </style>
+</head>
+<body>
+    <div id="score">Score: 0</div>
+    <canvas id="snakeGame" width="400" height="400"></canvas>
+
+    <footer>
+        <p>Made by Aub</p>
+        <!-- Remplacement de l'image par l'image locale -->
+        <img src="british-shorthair-1.jpg" alt="British Shorthair gris">
+    </footer>
+
+    <script>
+        const canvas = document.getElementById('snakeGame');
+        const ctx = canvas.getContext('2d');
+
+        // Paramètres du jeu
+        const gridSize = 25;
+        const tileCount = canvas.width / gridSize;
+
+        // Variables
+        let snake = [{ x: 8, y: 8 }];
+        let apple = spawnApple();
+        let direction = 'UP';
+        let gameInterval;
+        let score = 0;
+
+        function gameLoop() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const head = { ...snake[0] };
+            if (direction === 'RIGHT') head.x++;
+            if (direction === 'LEFT') head.x--;
+            if (direction === 'UP') head.y--;
+            if (direction === 'DOWN') head.y++;
+
+            if (
+                head.x < 0 || head.y < 0 ||
+                head.x >= tileCount || head.y >= tileCount ||
+                isCollision(head)
+            ) {
+                clearInterval(gameInterval);
+                alert('Appuyez sur OK pour réinitialiser le jeu...');
+                setTimeout(() => location.reload(), 2000);
+                return;
+            }
+
+            snake.unshift(head);
+
+            if (head.x === apple.x && head.y === apple.y) {
+                score++;
+                apple = spawnApple();
+            } else {
+                snake.pop();
+            }
+
+            ctx.fillStyle = 'red';
+            ctx.fillRect(apple.x * gridSize, apple.y * gridSize, gridSize, gridSize);
+
+            snake.forEach((segment, index) => {
+                ctx.fillStyle = index === 0 ? 'green' : 'blue';
+                ctx.fillRect(segment.x * gridSize, segment.y * gridSize, gridSize, gridSize);
+                ctx.strokeStyle = 'white';
+                ctx.strokeRect(segment.x * gridSize, segment.y * gridSize, gridSize, gridSize);
+            });
+
+            document.getElementById('score').textContent = `Score: ${score}`;
+        }
+
+        function isCollision(head) {
+            return snake.some(segment => segment.x === head.x && segment.y === head.y);
+        }
+
+        function spawnApple() {
+            return {
+                x: Math.floor(Math.random() * tileCount),
+                y: Math.floor(Math.random() * tileCount),
+            };
+        }
+
+        document.addEventListener('keydown', event => {
+            if (event.key === 'ArrowUp' && direction !== 'DOWN') direction = 'UP';
+            if (event.key === 'ArrowDown' && direction !== 'UP') direction = 'DOWN';
+            if (event.key === 'ArrowLeft' && direction !== 'RIGHT') direction = 'LEFT';
+            if (event.key === 'ArrowRight' && direction !== 'LEFT') direction = 'RIGHT';
+        });
+
+        function randomColor() {
+            const letters = '0123456789ABCDEF';
+            let color = '#';
+            for (let i = 0; i < 6; i++) {
+                color += letters[Math.floor(Math.random() * 16)];
+            }
+            return color;
+        }
+
+        setInterval(() => {
+            canvas.style.border = `5px solid ${randomColor()}`;
+        }, 500);
+
+        gameInterval = setInterval(gameLoop, 100);
+    </script>
+</body>
+</html>
